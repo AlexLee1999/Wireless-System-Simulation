@@ -246,7 +246,7 @@ if __name__ == "__main__":
 
     rate = 0
     for sinr in sinr_lst:
-        rate += (BW * log2(1+db_to_int(sinr)))
+        rate += shannon(sinr)
     print(f'Rate : {rate}')
     ################1-6################
     rate_lst = []
@@ -272,13 +272,13 @@ if __name__ == "__main__":
                 if ue._recv == 1:
                     dis = sqrt((ue.x-ue._tx.x)**2+(ue.y-ue._tx.y)**2)
                     up_p = up_rxp(dis)
-                    sinr_lst.append(Sinr(up_p, (d2d_p-db_to_int(up_p))))
+                    sinr_lst.append(Sinr(up_p, (d2d_p - db_to_int(up_p))))
                     count_lst.append(count)
                     count += 1
             sinr_lst.sort()
             rate = 0
             for sinr in sinr_lst:
-                rate += (BW/UE_NUM * log2(1+db_to_int(sinr)))
+                rate += shannon(sinr)
             rate_lst_avg.append(rate)
         rate_lst.append(sum(rate_lst_avg)/20)
         ue_num_lst.append(UE_NUM)
