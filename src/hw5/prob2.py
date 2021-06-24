@@ -21,6 +21,8 @@ NEG_SQRT_3_div_2 = (-1) * (sqrt(3) / 2)
 UE_NUM = 75
 SCALE = 250 / SQRT_3_div_2
 
+BS_BUFFER_SIZE = 15E6
+UE_BUFFER_SIZE = 0.5E6
 
 class Map():
     def __init__(self):
@@ -45,6 +47,7 @@ class Cluster():
         self._bs.append(Bs(250 * NEG_SQRT_3 + loc_x, -250 + loc_y, self))
         self._bs.append(Bs(250 * SQRT_3 + loc_x, 250 + loc_y, self))
         self._bs.append(Bs(250 * SQRT_3 + loc_x, -250 + loc_y, self))
+
     @property
     def bs(self):
         return self._bs
@@ -58,21 +61,14 @@ class Cluster():
         y = []
         ue_x = []
         ue_y = []
-        ue_x_recv = []
-        ue_y_recv = []
         for i in range(len(self.bs)):
             x.append(self.bs[i].x)
             y.append(self.bs[i].y)
             for j in range(len(self.bs[i].ue)):
-                if self.bs[i].ue[j]._recv == 0:
-                    ue_x.append(self.bs[i].ue[j].x)
-                    ue_y.append(self.bs[i].ue[j].y)
-                else:
-                    ue_x_recv.append(self.bs[i].ue[j].x)
-                    ue_y_recv.append(self.bs[i].ue[j].y)
+                ue_x.append(self.bs[i].ue[j].x)
+                ue_y.append(self.bs[i].ue[j].y)
         plt.scatter(x, y, color='r', marker='^')
-        plt.scatter(ue_x, ue_y, marker='.', color='b')
-        plt.scatter(ue_x_recv, ue_y_recv, marker='.', color='g')
+        plt.scatter(ue_x, ue_y, marker='.')
         plt.axis('square')
         plt.title('UE Map')
         plt.xlabel("X(m)")
@@ -101,6 +97,10 @@ class Bs():
     def y(self):
         return self._loc_y
 
+    @property
+    def adj(self):
+        return self._adj
+
     def add_ue(self, ue):
         self._ue.append(ue)
 
@@ -113,16 +113,24 @@ class Bs():
                 ue2 = Ue(self, 1, ue)
             self._ue.append(ue2)
 
+    def cal_buffer(self):
+        tot = 0
+        for ue in self.ue:
+            tot += ue.buffer
+        return tot
+
 
 class Ue():
-    def __init__(self, bs, recv=0, tx = None):
+    def __init__(self, bs, recv=0, tx=None):
         self._x, self._y = gen_loc()
-        self._dis = sqrt(self._x**2+self._y**2)
         self._x += bs.x
         self._y += bs.y
         self._bs = bs
+        self._rate = None
+        self._buffer = 0
         self._recv = recv
         self._tx = tx
+        self._tx_data = 0
 
     @property
     def x(self):
@@ -136,6 +144,22 @@ class Ue():
     def bs(self):
         return self._bs
 
+    @property
+    def rate(self):
+        return self._rate
+
+    @property
+    def buffer(self):
+        return self._buffer
+
+    def set_buffer(self, b):
+        self._buffer = b
+
+    @rate.setter
+    def rate(self, r):
+        self._rate = r
+
+
 def gen_loc():
     while True:
         x = uniform(-1, 1)
@@ -147,6 +171,7 @@ def gen_loc():
            (NEG_SQRT_3 * x + y <= SQRT_3) and \
            (NEG_SQRT_3 * x + y >= NEG_SQRT_3):
             return x * SCALE, y * SCALE
+
 
 def db_to_int(n):
     return 10 ** (n / 10)
@@ -176,112 +201,32 @@ def shannon(sinr):
 
 
 if __name__ == "__main__":
-    ################1-1################
     ma = Map()
     clus = Cluster(0, 0, ma)
     cent_bs = clus.bs[0]
     cent_bs.gen_ue()
-    clus.plot_map('./fig1_1.jpg')
-    ################1-2-a################
-
-    sinr_lst = []
-    count_lst = []
-    count = 0
-    for ue in cent_bs.ue:
-        up_p = up_rxp(ue._dis)
-        sinr_lst.append(Sinr(up_p, 0))
-        count_lst.append(count)
-        count += 1
-    sinr_lst.sort()
-    plt.scatter(sinr_lst, count_lst, marker='.')
-    plt.savefig('./fig1_2_a.jpg')
-    plt.close()
-    ################1-2-b################
-
-    sinr_lst = []
-    count_lst = []
-    count = 0
-    for ue in cent_bs.ue:
-        down_p = down_rxp(ue._dis)
-        inf_p = 0
-        for j in range(1, len(clus.bs)):
-            dis = sqrt((clus.bs[j].x - ue.x) ** 2 + (clus.bs[j].y - ue.y) ** 2)
-            inf_p += db_to_int(down_rxp(dis))
-        sinr_lst.append(Sinr(down_p, inf_p))
-        count_lst.append(count)
-        count += 1
-    sinr_lst.sort()
-    plt.scatter(sinr_lst, count_lst, marker='.')
-    plt.savefig('./fig1_2_b.jpg')
-    plt.close()
-    ################1-3################
-
-    rate = 0
-    for sinr in sinr_lst:
-        rate += (BW/UE_NUM * log2(1+db_to_int(sinr)))
-    print(f'Rate : {rate}')
-    ################1-4################
-
-    d2d_p = 0
     for ue in cent_bs.ue:
         if ue._recv == 1:
-            dis = sqrt((ue.x-ue._tx.x)**2+(ue.y-ue._tx.y)**2)
-            d2d_p += db_to_int(up_rxp(dis))
-    sinr_lst = []
-    count_lst = []
-    count = 0
-    for ue in cent_bs.ue:
-        if ue._recv == 1:
-            dis = sqrt((ue.x-ue._tx.x)**2+(ue.y-ue._tx.y)**2)
-            up_p = up_rxp(dis)
-            sinr_lst.append(Sinr(up_p, d2d_p-db_to_int(up_p)))
-            count_lst.append(count)
-            count += 1
-    sinr_lst.sort()
-
-    plt.scatter(sinr_lst, count_lst, marker='.')
-    plt.savefig('./fig1_4.jpg')
-    plt.close()
-    ################1-5################
-
-    rate = 0
-    for sinr in sinr_lst:
-        rate += (BW * log2(1+db_to_int(sinr)))
-    print(f'Rate : {rate}')
-    ################1-6################
-    rate_lst = []
-    ue_num_lst = []
-
-    for i in range(10):
-        UE_NUM += 25
-        for _ in range(20):
-            rate_lst_avg = []
-            ma = Map()
-            clus = Cluster(0, 0, ma)
-            cent_bs = clus.bs[0]
-            cent_bs.gen_ue()
-            d2d_p = 0
-            for ue in cent_bs.ue:
-                if ue._recv == 1:
-                    dis = sqrt((ue.x-ue._tx.x)**2+(ue.y-ue._tx.y)**2)
-                    d2d_p += db_to_int(up_rxp(dis))
-            sinr_lst = []
-            count_lst = []
-            count = 0
-            for ue in cent_bs.ue:
-                if ue._recv == 1:
-                    dis = sqrt((ue.x-ue._tx.x)**2+(ue.y-ue._tx.y)**2)
-                    up_p = up_rxp(dis)
-                    sinr_lst.append(Sinr(up_p, (d2d_p-db_to_int(up_p))))
-                    count_lst.append(count)
-                    count += 1
-            sinr_lst.sort()
-            rate = 0
-            for sinr in sinr_lst:
-                rate += (BW/UE_NUM * log2(1+db_to_int(sinr)))
-            rate_lst_avg.append(rate)
-        rate_lst.append(sum(rate_lst_avg)/20)
-        ue_num_lst.append(UE_NUM)
-    plt.scatter(ue_num_lst, rate_lst, marker='.')
-    plt.savefig('./fig1_6.jpg')
-    plt.close()
+            inf_p = 0
+            for j in range(1, len(clus.bs)):
+                dis = sqrt((clus.bs[j].x - ue.x) ** 2 + (clus.bs[j].y - ue.y) ** 2)
+                inf_p += db_to_int(down_rxp(dis))
+            sinr = Sinr(down_rxp(sqrt((cent_bs.x - ue.x) ** 2 + (cent_bs.y - ue.y) ** 2)), inf_p)
+            shan = shannon(sinr)
+            ue.rate = shan
+        else:
+            sinr = Sinr(up_rxp(sqrt((cent_bs.x - ue.x) ** 2 + (cent_bs.y - ue.y) ** 2)), 0)
+            shan = shannon(sinr)
+            ue.rate = shan
+    for rate in range(1E5, 2E6, 2E5):
+        loss_data = 0
+        total_data = 0
+        for ue in cent_bs.ue:
+            if ue._recv == 0:
+                data = random.poisson(lam=rate)
+                ue.set_buffer(max((data + ue.buffer - ue.rate), 0))
+                total_data += (data)
+                if data + ue.buffer - ue.rate <0:
+                    ue._tx_data = data + ue.buffer
+                else:
+                    ue._tx_data = ue.rate
