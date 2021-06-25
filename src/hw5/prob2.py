@@ -109,28 +109,29 @@ class Bs():
             ue = Ue(self)
             self._ue.append(ue)
             ue2 = Ue(self, 1, ue)
-            while sqrt((ue.x-ue2.x)**2 + (ue.y-ue2.y)**2) > 200:
-                ue2 = Ue(self, 1, ue)
+            while sqrt((ue.x - ue2.x) ** 2 + (ue.y - ue2.y) ** 2) > 200:
+                ue2 = Ue(self, 1, ue) #add Tx pair
             self._ue.append(ue2)
+            ue.set_pair(ue2)
 
     def cal_buffer(self):
         tot = 0
         for ue in self.ue:
-            tot += ue.buffer
+            if ue._recv == 1:
+                tot += ue._tx_buffer
         return tot
 
 
 class Ue():
-    def __init__(self, bs, recv=0, tx=None):
+    def __init__(self, bs, is_recv=0, pair=None):
         self._x, self._y = gen_loc()
         self._x += bs.x
         self._y += bs.y
         self._bs = bs
         self._rate = None
-        self._buffer = 0
-        self._recv = recv
-        self._tx = tx
-        self._tx_data = 0
+        self._is_recv = is_recv
+        self._pair = pair
+        self._tx_buffer = 0
 
     @property
     def x(self):
@@ -148,16 +149,15 @@ class Ue():
     def rate(self):
         return self._rate
 
-    @property
-    def buffer(self):
-        return self._buffer
-
-    def set_buffer(self, b):
-        self._buffer = b
+    def set_tx_buffer(self, da):
+        self._tx_buffer = da
 
     @rate.setter
     def rate(self, r):
         self._rate = r
+
+    def set_pair(self, ue):
+        self._pair = ue
 
 
 def gen_loc():
@@ -189,6 +189,12 @@ def up_rxp(dis):
     rx_p = g_db + UE_P + TX_G + RX_G
     return rx_p
 
+def up_rxp_d2d(dis):
+    g = (UE_H * UE_H) ** 2 / (dis ** EX)
+    g_db = 10 * log10(g)
+    rx_p = g_db + UE_P + TX_G + RX_G
+    return rx_p
+
 def Sinr(power_db, inf):
     noise = BOLTZ_CONST * TEMP * BW / UE_NUM
     p = db_to_int(power_db)
@@ -197,7 +203,7 @@ def Sinr(power_db, inf):
 
 
 def shannon(sinr):
-    return BW / UE_NUM * log2(1 + db_to_int(sinr))
+    return BW * log2(1 + db_to_int(sinr))
 
 
 if __name__ == "__main__":
@@ -205,8 +211,9 @@ if __name__ == "__main__":
     clus = Cluster(0, 0, ma)
     cent_bs = clus.bs[0]
     cent_bs.gen_ue()
+    # Calculate rate for downlink and uplink
     for ue in cent_bs.ue:
-        if ue._recv == 1:
+        if ue._is_recv == 1:
             inf_p = 0
             for j in range(1, len(clus.bs)):
                 dis = sqrt((clus.bs[j].x - ue.x) ** 2 + (clus.bs[j].y - ue.y) ** 2)
@@ -218,15 +225,36 @@ if __name__ == "__main__":
             sinr = Sinr(up_rxp(sqrt((cent_bs.x - ue.x) ** 2 + (cent_bs.y - ue.y) ** 2)), 0)
             shan = shannon(sinr)
             ue.rate = shan
-    for rate in range(1E5, 2E6, 2E5):
+
+    for rate in range(100000, 2000000, 200000):
         loss_data = 0
         total_data = 0
         for ue in cent_bs.ue:
-            if ue._recv == 0:
+            if ue._is_recv == 0: # Sending UE
                 data = random.poisson(lam=rate)
                 ue.set_buffer(max((data + ue.buffer - ue.rate), 0))
                 total_data += (data)
-                if data + ue.buffer - ue.rate <0:
-                    ue._tx_data = data + ue.buffer
+                if data + ue.buffer - ue.rate < 0:
+                    ue._pair._tx_buffer = data + ue.buffer
                 else:
-                    ue._tx_data = ue.rate
+                    ue._pair._tx_buffer = ue.rate
+                    ### 處理 BS bit loss
+
+        current = cent_bs.cal_buffer()
+        current_loss_data = current - BS_BUFFER_SIZE
+        if current_loss_data > 0:
+            loss_data += current_loss_data
+            for ue in cent_bs.ue:
+                if ue._is_recv == 1:
+                    ue.set_tx_buffer(ue._tx_buffer * BS_BUFFER_SIZE / current)
+
+        for ue in cent_bs.ue:
+            if ue._is_recv == 1:
+                data = ue._pair._tx_buffer
+                ue.set_buffer(max((data + ue.buffer - ue.rate), 0))
+        current = cent_bs.cal_buffer()
+        current_loss_data = current - BS_BUFFER_SIZE
+        if current_loss_data > 0:
+            loss_data += current_loss_data
+            for ue in cent_bs.ue:
+                ue.set_buffer(ue.buffer * UE_BUFFER_SIZE / current)

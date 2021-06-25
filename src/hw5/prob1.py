@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from random import randint, uniform
-from math import sqrt, log10, log2
+from math import sqrt, log10, log2, pi, cos, sin
 from numpy import random
 
 
@@ -20,6 +20,7 @@ NEG_SQRT_3 = (-1) * sqrt(3)
 NEG_SQRT_3_div_2 = (-1) * (sqrt(3) / 2)
 UE_NUM = 75
 SCALE = 250 / SQRT_3_div_2
+PAIR_DIS = 200
 
 
 class Map():
@@ -108,16 +109,17 @@ class Bs():
         for i in range(UE_NUM):
             ue = Ue(self)
             self._ue.append(ue)
-            ue2 = Ue(self, 1, ue)
-            while sqrt((ue.x-ue2.x)**2 + (ue.y-ue2.y)**2) > 200:
-                ue2 = Ue(self, 1, ue)
+            ue2 = Ue(self, 1, ue, ue.x, ue.y)
             self._ue.append(ue2)
 
 
 class Ue():
-    def __init__(self, bs, recv=0, tx = None):
-        self._x, self._y = gen_loc()
-        self._dis = sqrt(self._x**2+self._y**2)
+    def __init__(self, bs, recv=0, tx=None, gen_x=None, gen_y=None):
+        if gen_x is None or gen_y is None:
+            self._x, self._y = gen_loc()
+        else:
+            self._x, self._y = gen_loc_with_initial(gen_x, gen_y)
+        self._dis = sqrt(self._x ** 2 + self._y ** 2)
         self._x += bs.x
         self._y += bs.y
         self._bs = bs
@@ -148,9 +150,22 @@ def gen_loc():
            (NEG_SQRT_3 * x + y >= NEG_SQRT_3):
             return x * SCALE, y * SCALE
 
+
+def gen_loc_with_initial(gen_x, gen_y):
+    while True:
+        theta = uniform(0, 2 * pi)
+        x = gen_x/SCALE + PAIR_DIS/SCALE * cos(theta)
+        y = gen_y/SCALE + PAIR_DIS/SCALE * sin(theta)
+        if (y <= SQRT_3_div_2) and \
+           (y >= NEG_SQRT_3_div_2) and \
+           (SQRT_3 * x + y <= SQRT_3) and \
+           (SQRT_3 * x + y >= NEG_SQRT_3) and \
+           (NEG_SQRT_3 * x + y <= SQRT_3) and \
+           (NEG_SQRT_3 * x + y >= NEG_SQRT_3):
+            return x * SCALE, y * SCALE
+
 def db_to_int(n):
     return 10 ** (n / 10)
-
 
 def down_rxp(dis):
     g = (B_H * UE_H) ** 2 / (dis ** EX)
@@ -164,6 +179,12 @@ def up_rxp(dis):
     rx_p = g_db + UE_P + TX_G + RX_G
     return rx_p
 
+def up_rxp_d2d(dis):
+    g = (UE_H * UE_H) ** 2 / (dis ** EX)
+    g_db = 10 * log10(g)
+    rx_p = g_db + UE_P + TX_G + RX_G
+    return rx_p
+
 def Sinr(power_db, inf):
     noise = BOLTZ_CONST * TEMP * BW / UE_NUM
     p = db_to_int(power_db)
@@ -172,7 +193,7 @@ def Sinr(power_db, inf):
 
 
 def shannon(sinr):
-    return BW / UE_NUM * log2(1 + db_to_int(sinr))
+    return BW * log2(1 + db_to_int(sinr))
 
 
 if __name__ == "__main__":
@@ -182,6 +203,7 @@ if __name__ == "__main__":
     cent_bs = clus.bs[0]
     cent_bs.gen_ue()
     clus.plot_map('./fig1_1.jpg')
+    print('problem 1-1')
     ################1-2-a################
 
     sinr_lst = []
@@ -196,6 +218,8 @@ if __name__ == "__main__":
     plt.scatter(sinr_lst, count_lst, marker='.')
     plt.savefig('./fig1_2_a.jpg')
     plt.close()
+    print('problem 1-2a')
+
     ################1-2-b################
 
     sinr_lst = []
@@ -214,27 +238,31 @@ if __name__ == "__main__":
     plt.scatter(sinr_lst, count_lst, marker='.')
     plt.savefig('./fig1_2_b.jpg')
     plt.close()
+    print('problem 1-2b')
+
     ################1-3################
 
     rate = 0
     for sinr in sinr_lst:
-        rate += (BW/UE_NUM * log2(1+db_to_int(sinr)))
-    print(f'Rate : {rate}')
+        rate += shannon(sinr)
+    print(f'Throughput of Downlink : {rate}')
+    print('problem 1-3')
+
     ################1-4################
 
     d2d_p = 0
     for ue in cent_bs.ue:
         if ue._recv == 1:
-            dis = sqrt((ue.x-ue._tx.x)**2+(ue.y-ue._tx.y)**2)
-            d2d_p += db_to_int(up_rxp(dis))
+            dis = sqrt((ue.x - ue._tx.x)**2+(ue.y - ue._tx.y)**2)
+            d2d_p += db_to_int(up_rxp_d2d(dis))
     sinr_lst = []
     count_lst = []
     count = 0
     for ue in cent_bs.ue:
         if ue._recv == 1:
             dis = sqrt((ue.x-ue._tx.x)**2+(ue.y-ue._tx.y)**2)
-            up_p = up_rxp(dis)
-            sinr_lst.append(Sinr(up_p, d2d_p-db_to_int(up_p)))
+            up_p = up_rxp_d2d(dis)
+            sinr_lst.append(Sinr(up_p, d2d_p - db_to_int(up_p)))
             count_lst.append(count)
             count += 1
     sinr_lst.sort()
@@ -242,46 +270,48 @@ if __name__ == "__main__":
     plt.scatter(sinr_lst, count_lst, marker='.')
     plt.savefig('./fig1_4.jpg')
     plt.close()
+    print('problem 1-4')
+
     ################1-5################
 
     rate = 0
     for sinr in sinr_lst:
         rate += shannon(sinr)
-    print(f'Rate : {rate}')
+    print(f'Throughput of D2D systems : {rate}')
+    print('problem 1-5')
+
     ################1-6################
     rate_lst = []
     ue_num_lst = []
 
     for i in range(10):
         UE_NUM += 25
-        for _ in range(20):
-            rate_lst_avg = []
-            ma = Map()
-            clus = Cluster(0, 0, ma)
-            cent_bs = clus.bs[0]
-            cent_bs.gen_ue()
-            d2d_p = 0
-            for ue in cent_bs.ue:
-                if ue._recv == 1:
-                    dis = sqrt((ue.x-ue._tx.x)**2+(ue.y-ue._tx.y)**2)
-                    d2d_p += db_to_int(up_rxp(dis))
-            sinr_lst = []
-            count_lst = []
-            count = 0
-            for ue in cent_bs.ue:
-                if ue._recv == 1:
-                    dis = sqrt((ue.x-ue._tx.x)**2+(ue.y-ue._tx.y)**2)
-                    up_p = up_rxp(dis)
-                    sinr_lst.append(Sinr(up_p, (d2d_p - db_to_int(up_p))))
-                    count_lst.append(count)
-                    count += 1
-            sinr_lst.sort()
-            rate = 0
-            for sinr in sinr_lst:
-                rate += shannon(sinr)
-            rate_lst_avg.append(rate)
-        rate_lst.append(sum(rate_lst_avg)/20)
+        ma = Map()
+        clus = Cluster(0, 0, ma)
+        cent_bs = clus.bs[0]
+        cent_bs.gen_ue()
+        d2d_p = 0
+        for ue in cent_bs.ue:
+            if ue._recv == 1:
+                dis = sqrt((ue.x - ue._tx.x) ** 2 + (ue.y - ue._tx.y) ** 2)
+                d2d_p += db_to_int(up_rxp_d2d(dis))
+        sinr_lst = []
+        count_lst = []
+        count = 0
+        for ue in cent_bs.ue:
+            if ue._recv == 1:
+                dis = sqrt((ue.x - ue._tx.x) ** 2 + (ue.y - ue._tx.y) ** 2)
+                up_p = up_rxp_d2d(dis)
+                sinr_lst.append(Sinr(up_p, (d2d_p - db_to_int(up_p))))
+                count_lst.append(count)
+                count += 1
+        sinr_lst.sort()
+        rate = 0
+        for sinr in sinr_lst:
+            rate += shannon(sinr)
+        rate_lst.append(rate)
         ue_num_lst.append(UE_NUM)
     plt.scatter(ue_num_lst, rate_lst, marker='.')
     plt.savefig('./fig1_6.jpg')
     plt.close()
+    print('problem 1-6')
