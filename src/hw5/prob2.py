@@ -117,7 +117,7 @@ class Bs():
     def cal_buffer(self):
         tot = 0
         for ue in self.ue:
-            if ue._recv == 1:
+            if ue._is_recv == 1:
                 tot += ue._tx_buffer
         return tot
 
@@ -132,6 +132,8 @@ class Ue():
         self._is_recv = is_recv
         self._pair = pair
         self._tx_buffer = 0
+        self._buffer = 0
+        self._d2d_rate = 0
 
     @property
     def x(self):
@@ -151,6 +153,9 @@ class Ue():
 
     def set_tx_buffer(self, da):
         self._tx_buffer = da
+
+    def set_buffer(self, da):
+        self._buffer = da
 
     @rate.setter
     def rate(self, r):
@@ -211,7 +216,18 @@ if __name__ == "__main__":
     clus = Cluster(0, 0, ma)
     cent_bs = clus.bs[0]
     cent_bs.gen_ue()
+    d2d_p = 0
+    for ue in cent_bs.ue:
+        if ue._is_recv == 1:
+            dis = sqrt((ue.x - ue._pair.x)**2+(ue.y - ue._pair.y)**2)
+            d2d_p += db_to_int(up_rxp_d2d(dis))
+    for ue in cent_bs.ue:
+        dis = sqrt((ue.x-ue._pair.x)**2+(ue.y-ue._pair.y)**2)
+        up_p = up_rxp_d2d(dis)
+        ue._d2d_rate = shannon((Sinr(up_p, d2d_p - db_to_int(up_p))))
+        print(ue._d2d_rate)
     # Calculate rate for downlink and uplink
+
     for ue in cent_bs.ue:
         if ue._is_recv == 1:
             inf_p = 0
@@ -226,35 +242,54 @@ if __name__ == "__main__":
             shan = shannon(sinr)
             ue.rate = shan
 
+
+
     for rate in range(100000, 2000000, 200000):
         loss_data = 0
         total_data = 0
-        for ue in cent_bs.ue:
-            if ue._is_recv == 0: # Sending UE
-                data = random.poisson(lam=rate)
-                ue.set_buffer(max((data + ue.buffer - ue.rate), 0))
-                total_data += (data)
-                if data + ue.buffer - ue.rate < 0:
-                    ue._pair._tx_buffer = data + ue.buffer
-                else:
-                    ue._pair._tx_buffer = ue.rate
-                    ### 處理 BS bit loss
+        for _ in range(1000):
+            for ue in cent_bs.ue:
+                if ue._is_recv == 0: # Sending UE
+                    data = random.poisson(lam=rate)
+                    total_data += data
+                    ready_data = data + ue._buffer
+                    ue.set_buffer(max((ready_data - ue.rate), 0))
+                    if ue._buffer > UE_BUFFER_SIZE:
+                        loss_data += ue._buffer - UE_BUFFER_SIZE
+                        ue.set_buffer(UE_BUFFER_SIZE)
+                    if ready_data - ue.rate < 0:
+                        ue._pair._tx_buffer = ready_data
+                    else:
+                        ue._pair._tx_buffer = ue.rate
 
-        current = cent_bs.cal_buffer()
-        current_loss_data = current - BS_BUFFER_SIZE
-        if current_loss_data > 0:
-            loss_data += current_loss_data
+            # BS bit loss
             for ue in cent_bs.ue:
                 if ue._is_recv == 1:
-                    ue.set_tx_buffer(ue._tx_buffer * BS_BUFFER_SIZE / current)
+                    ue.set_tx_buffer(max(ue._tx_buffer - ue.rate, 0))
+            current = cent_bs.cal_tx_buffer()
+            # print(current)
+            current_loss_data = current - BS_BUFFER_SIZE
+            if current_loss_data > 0:
+                loss_data += current_loss_data
+                for ue in cent_bs.ue:
+                    if ue._is_recv == 1:
+                        ue.set_tx_buffer(ue._tx_buffer * BS_BUFFER_SIZE / current)
+        # print(loss_data, total_data)
 
-        for ue in cent_bs.ue:
-            if ue._is_recv == 1:
-                data = ue._pair._tx_buffer
-                ue.set_buffer(max((data + ue.buffer - ue.rate), 0))
-        current = cent_bs.cal_buffer()
-        current_loss_data = current - BS_BUFFER_SIZE
-        if current_loss_data > 0:
-            loss_data += current_loss_data
+
+    for ue in cent_bs.ue:
+        ue.set_buffer(0)
+    for rate in range(100000, 2000000, 200000):
+        loss_data = 0
+        total_data = 0
+        for _ in range(1000):
             for ue in cent_bs.ue:
-                ue.set_buffer(ue.buffer * UE_BUFFER_SIZE / current)
+                if ue._is_recv == 0: # Sending UE
+                    data = random.poisson(lam=rate)
+                    total_data += data
+                    ready_data = data + ue._buffer
+                    ue.set_buffer(max((ready_data - ue._d2d_rate), 0))
+                    if ue._buffer > UE_BUFFER_SIZE:
+                        loss_data += ue._buffer - UE_BUFFER_SIZE
+                        ue.set_buffer(UE_BUFFER_SIZE)
+        print(loss_data/total_data)
