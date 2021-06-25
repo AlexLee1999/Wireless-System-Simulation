@@ -114,7 +114,7 @@ class Bs():
             self._ue.append(ue2)
             ue.set_pair(ue2)
 
-    def cal_buffer(self):
+    def cal_tx_buffer(self):
         tot = 0
         for ue in self.ue:
             if ue._is_recv == 1:
