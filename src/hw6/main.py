@@ -428,8 +428,31 @@ env0.cells[18].adjLR = env0.cells[1]
 
 
 if __name__ == "__main__":
-    ################1-1################
+    ################ 1-1 ################
     env0.plot()
-    ################1-2################
+    ################ 1-2 ################
+    innerCells = [cell for cell in env0.cells[:7]]
+    dataPoints = []
+    for idx in range(100):
+        for cell in innerCells:
+            cell.clear()
+            cell.addRandomMSs(np.random.randint(5, 16))
+        poorestSINRs = []
+        for cell in innerCells:
+            poorestSINRs.append(
+                min([ms.sinr(cell) for ms in cell.MSs])
+            )
+        dataPoints.append(poorestSINRs)
+    dataPoints = np.array(dataPoints)
+    for idx in range(7):
+        dataPoint = dataPoints[:, idx]
+        dataPoint.sort()
+        count = 0; Y = []
+        for point in dataPoint:
+            count += 1
+            Y.append(count/len(dataPoint))
+        plt.plot(dataPoint, Y)
+        plt.show()
+    ################ 1-3 ################
 
     plt.show()
