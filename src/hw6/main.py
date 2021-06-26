@@ -490,9 +490,9 @@ if __name__ == "__main__":
     aveDataRate = np.array(aveDataRate)
     aveDataRate = aveDataRate.sum(axis=0) / simIt
 
-    ################ 2-1 ################
+    ################################ 2-1 ################################
     data = []
-    for idx in range(100):
+    for idx in range(simIt):
         for cell in innerCells:
             cell.clear()
             cell.addRandomMSs(np.random.randint(5, 16))
@@ -510,5 +510,10 @@ if __name__ == "__main__":
         count += 1
         Y1.append(count/len(data))
     plt.plot(data, Y1)
+    plt.xlabel("SINR")
+    plt.ylabel("P")
+    plt.title("CDF")
     plt.savefig("./img/2-1.jpg")
-    plt.close()
+    ################################ 2-2 ################################
+    
+    
