@@ -52,12 +52,12 @@ class Env():
             color = c[0].lower()
             cell = RegularPolygon(
                 (x, y),
-                numVertices = 6,
-                radius = Cell.R,
-                orientation = np.radians(30),
-                facecolor = color,
-                alpha = 0.2,
-                edgecolor = "k"
+                numVertices=6,
+                radius=Cell.R,
+                orientation=np.radians(30),
+                facecolor=color,
+                alpha=0.2,
+                edgecolor="k"
             )
             ax.add_patch(cell)
             ax.scatter(x, y, color="k", marker="^")
@@ -67,7 +67,6 @@ class Env():
         plt.ylim(-2.5 * Cell.ISD, 2.5 * Cell.ISD)
         plt.savefig("./img/Cell_ID.jpg")
         plt.close()
-
 
 
 class Cell():
@@ -153,25 +152,22 @@ class Cell():
         ax.set_aspect("equal")
         cell = RegularPolygon(
             self.coord,
-            numVertices = 6,
-            radius = Cell.R,
-            orientation = np.radians(30),
-            facecolor = "blue",
-            alpha = 0.2,
-            edgecolor = "k"
+            numVertices=6,
+            radius=Cell.R,
+            orientation=np.radians(30),
+            facecolor="blue",
+            alpha=0.2,
+            edgecolor="k"
         )
         ax.add_patch(cell)
         ax.scatter(self.coord[0], self.coord[1], color="k", marker="^")
         for ms in self.MSs:
             coord = ms.getCoord()
             ax.scatter(
-                coord[0], coord[1], alpha = 0.5, marker = "."
+                coord[0], coord[1], alpha=0.5, marker="."
             )
         plt.xlim(self.coord[0] - Cell.R, self.coord[0] + Cell.R)
         plt.ylim(self.coord[1] - .5 * Cell.ISD, self.coord[1] + .5 * Cell.ISD)
-
-
-
 
 
 class BS(Cell):
@@ -432,12 +428,6 @@ env0.cells[18].adjLo = env0.cells[6]
 env0.cells[18].adjLL = env0.cells[17]
 env0.cells[18].adjLR = env0.cells[1]
 
-
-
-
-
-
-
 if __name__ == "__main__":
     simIt = 100
 
@@ -481,7 +471,8 @@ if __name__ == "__main__":
     for idx in range(7):
         dataPoint_1 = dataPoints_1[:, idx]
         dataPoint_1.sort()
-        count = 0; Y = []
+        count = 0
+        Y = []
         for point in dataPoint_1:
             count += 1
             Y.append(count/len(dataPoint_1))
