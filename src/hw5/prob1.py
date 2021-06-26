@@ -209,7 +209,7 @@ if __name__ == "__main__":
     clus = Cluster(0, 0, ma)
     cent_bs = clus.bs[0]
     cent_bs.gen_ue()
-    clus.plot_map('./fig1_1.jpg')
+    clus.plot_map('./img/fig1_1.jpg')
     print('problem 1-1')
     ################1-2-a################
 
@@ -224,7 +224,7 @@ if __name__ == "__main__":
             count += 1
     sinr_lst.sort()
     plt.scatter(sinr_lst, count_lst, marker='.')
-    plt.savefig('./fig1_2_a.jpg')
+    plt.savefig('./img/fig1_2_a.jpg')
     plt.close()
     print('problem 1-2a')
 
@@ -245,7 +245,7 @@ if __name__ == "__main__":
             count += 1
     sinr_lst.sort()
     plt.scatter(sinr_lst, count_lst, marker='.')
-    plt.savefig('./fig1_2_b.jpg')
+    plt.savefig('./img/fig1_2_b.jpg')
     plt.close()
     print('problem 1-2b')
 
@@ -276,7 +276,7 @@ if __name__ == "__main__":
     sinr_lst.sort()
 
     plt.scatter(sinr_lst, count_lst, marker='.')
-    plt.savefig('./fig1_4.jpg')
+    plt.savefig('./img/fig1_4.jpg')
     plt.close()
     print('problem 1-4')
 
@@ -320,6 +320,6 @@ if __name__ == "__main__":
         rate_lst.append(rate)
         ue_num_lst.append(UE_NUM)
     plt.scatter(ue_num_lst, rate_lst, marker='.')
-    plt.savefig('./fig1_6.jpg')
+    plt.savefig('./img/fig1_6.jpg')
     plt.close()
     print('problem 1-6')
