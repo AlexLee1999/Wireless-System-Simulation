@@ -1,5 +1,5 @@
 # Ignore all jpg files
-*.jpg
+**/*.jpg
 
 # Ignore mac system files
 .DS_Store
