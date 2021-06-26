@@ -514,5 +514,7 @@ if __name__ == "__main__":
 
     ################################ 2-2 ################################
     resourceEffs_2 = np.array(resourceEffs_2) / simIt
-    aveDataRate_2 = sum([innerCells[0].MSs[0].shannonCapacity(innerCells[0], sinr=dataPoints_2[idx]) for idx in range(simIt)]) / simIt
+    aveDataRate_2 = sum(
+        [innerCells[0].MSs[0].shannonCapacity(innerCells[0], sinr=dataPoints_2[idx]) for idx in range(simIt)]
+    ) / simIt
     print(aveDataRate_2)
