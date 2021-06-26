@@ -20,8 +20,7 @@ NEG_SQRT_3 = (-1) * sqrt(3)
 NEG_SQRT_3_div_2 = (-1) * (sqrt(3) / 2)
 UE_NUM = 75
 SCALE = 250 / SQRT_3_div_2
-PAIR_DIS = 200
-
+PAIR_DIS = 100
 
 class Map():
     def __init__(self):
@@ -46,6 +45,7 @@ class Cluster():
         self._bs.append(Bs(250 * NEG_SQRT_3 + loc_x, -250 + loc_y, self))
         self._bs.append(Bs(250 * SQRT_3 + loc_x, 250 + loc_y, self))
         self._bs.append(Bs(250 * SQRT_3 + loc_x, -250 + loc_y, self))
+
     @property
     def bs(self):
         return self._bs
@@ -138,6 +138,7 @@ class Ue():
     def bs(self):
         return self._bs
 
+
 def gen_loc():
     while True:
         x = uniform(-1, 1)
@@ -154,8 +155,9 @@ def gen_loc():
 def gen_loc_with_initial(gen_x, gen_y):
     while True:
         theta = uniform(0, 2 * pi)
-        x = gen_x/SCALE + PAIR_DIS/SCALE * cos(theta)
-        y = gen_y/SCALE + PAIR_DIS/SCALE * sin(theta)
+        dis = uniform(PAIR_DIS, PAIR_DIS)
+        x = gen_x / SCALE + dis / SCALE * cos(theta)
+        y = gen_y / SCALE + dis / SCALE * sin(theta)
         if (y <= SQRT_3_div_2) and \
            (y >= NEG_SQRT_3_div_2) and \
            (SQRT_3 * x + y <= SQRT_3) and \
@@ -164,8 +166,10 @@ def gen_loc_with_initial(gen_x, gen_y):
            (NEG_SQRT_3 * x + y >= NEG_SQRT_3):
             return x * SCALE, y * SCALE
 
+
 def db_to_int(n):
     return 10 ** (n / 10)
+
 
 def down_rxp(dis):
     g = (B_H * UE_H) ** 2 / (dis ** EX)
@@ -173,17 +177,20 @@ def down_rxp(dis):
     rx_p = g_db + BASE_P + TX_G + RX_G
     return rx_p
 
+
 def up_rxp(dis):
     g = (B_H * UE_H) ** 2 / (dis ** EX)
     g_db = 10 * log10(g)
     rx_p = g_db + UE_P + TX_G + RX_G
     return rx_p
 
+
 def up_rxp_d2d(dis):
     g = (UE_H * UE_H) ** 2 / (dis ** EX)
     g_db = 10 * log10(g)
     rx_p = g_db + UE_P + TX_G + RX_G
     return rx_p
+
 
 def Sinr(power_db, inf):
     noise = BOLTZ_CONST * TEMP * BW / UE_NUM
@@ -203,6 +210,7 @@ if __name__ == "__main__":
     cent_bs = clus.bs[0]
     cent_bs.gen_ue()
     clus.plot_map('./fig1_1.jpg')
+    clus.plot_map('./fig1_1.pdf')
     print('problem 1-1')
     ################1-2-a################
 
@@ -210,13 +218,15 @@ if __name__ == "__main__":
     count_lst = []
     count = 0
     for ue in cent_bs.ue:
-        up_p = up_rxp(ue._dis)
-        sinr_lst.append(Sinr(up_p, 0))
-        count_lst.append(count)
-        count += 1
+        if ue._recv == 0:
+            up_p = up_rxp(ue._dis)
+            sinr_lst.append(Sinr(up_p, 0))
+            count_lst.append(count)
+            count += 1
     sinr_lst.sort()
     plt.scatter(sinr_lst, count_lst, marker='.')
     plt.savefig('./fig1_2_a.jpg')
+    plt.savefig('./fig1_2_a.pdf')
     plt.close()
     print('problem 1-2a')
 
@@ -226,17 +236,19 @@ if __name__ == "__main__":
     count_lst = []
     count = 0
     for ue in cent_bs.ue:
-        down_p = down_rxp(ue._dis)
-        inf_p = 0
-        for j in range(1, len(clus.bs)):
-            dis = sqrt((clus.bs[j].x - ue.x) ** 2 + (clus.bs[j].y - ue.y) ** 2)
-            inf_p += db_to_int(down_rxp(dis))
-        sinr_lst.append(Sinr(down_p, inf_p))
-        count_lst.append(count)
-        count += 1
+        if ue._recv == 0:
+            down_p = down_rxp(ue._dis)
+            inf_p = 0
+            for j in range(1, len(clus.bs)):
+                dis = sqrt((clus.bs[j].x - ue.x) ** 2 + (clus.bs[j].y - ue.y) ** 2)
+                inf_p += db_to_int(down_rxp(dis))
+            sinr_lst.append(Sinr(down_p, inf_p))
+            count_lst.append(count)
+            count += 1
     sinr_lst.sort()
     plt.scatter(sinr_lst, count_lst, marker='.')
     plt.savefig('./fig1_2_b.jpg')
+    plt.savefig('./fig1_2_b.pdf')
     plt.close()
     print('problem 1-2b')
 
@@ -249,18 +261,17 @@ if __name__ == "__main__":
     print('problem 1-3')
 
     ################1-4################
-
-    d2d_p = 0
-    for ue in cent_bs.ue:
-        if ue._recv == 1:
-            dis = sqrt((ue.x - ue._tx.x)**2+(ue.y - ue._tx.y)**2)
-            d2d_p += db_to_int(up_rxp_d2d(dis))
     sinr_lst = []
     count_lst = []
     count = 0
     for ue in cent_bs.ue:
         if ue._recv == 1:
-            dis = sqrt((ue.x-ue._tx.x)**2+(ue.y-ue._tx.y)**2)
+            d2d_p = 0
+            for tx_ue in cent_bs.ue:
+                if tx_ue._recv == 0:
+                    dis = sqrt((ue.x - tx_ue.x) ** 2 + (ue.y - tx_ue.y) ** 2)
+                    d2d_p += db_to_int(up_rxp_d2d(dis))
+            dis = sqrt((ue.x - ue._tx.x) ** 2 + (ue.y - ue._tx.y) ** 2)
             up_p = up_rxp_d2d(dis)
             sinr_lst.append(Sinr(up_p, d2d_p - db_to_int(up_p)))
             count_lst.append(count)
@@ -269,6 +280,7 @@ if __name__ == "__main__":
 
     plt.scatter(sinr_lst, count_lst, marker='.')
     plt.savefig('./fig1_4.jpg')
+    plt.savefig('./fig1_4.pdf')
     plt.close()
     print('problem 1-4')
 
@@ -290,16 +302,16 @@ if __name__ == "__main__":
         clus = Cluster(0, 0, ma)
         cent_bs = clus.bs[0]
         cent_bs.gen_ue()
-        d2d_p = 0
-        for ue in cent_bs.ue:
-            if ue._recv == 1:
-                dis = sqrt((ue.x - ue._tx.x) ** 2 + (ue.y - ue._tx.y) ** 2)
-                d2d_p += db_to_int(up_rxp_d2d(dis))
         sinr_lst = []
         count_lst = []
         count = 0
         for ue in cent_bs.ue:
             if ue._recv == 1:
+                d2d_p = 0
+                for tx_ue in cent_bs.ue:
+                    if tx_ue._recv == 0:
+                        dis = sqrt((ue.x - tx_ue.x) ** 2 + (ue.y - tx_ue.y) ** 2)
+                        d2d_p += db_to_int(up_rxp_d2d(dis))
                 dis = sqrt((ue.x - ue._tx.x) ** 2 + (ue.y - ue._tx.y) ** 2)
                 up_p = up_rxp_d2d(dis)
                 sinr_lst.append(Sinr(up_p, (d2d_p - db_to_int(up_p))))
@@ -313,5 +325,6 @@ if __name__ == "__main__":
         ue_num_lst.append(UE_NUM)
     plt.scatter(ue_num_lst, rate_lst, marker='.')
     plt.savefig('./fig1_6.jpg')
+    plt.savefig('./fig1_6.pdf')
     plt.close()
     print('problem 1-6')
