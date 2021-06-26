@@ -246,6 +246,12 @@ class MS():
             MS.H, BS.H, np.linalg.norm(dist)
         ) + Env.dBm2dB(BS.power) + BS.gainTx + MS.gainRx
 
+    def constsinr(self, bs):
+        powerSig = sum([Env.dB2ratio(self.powerRx(cell)) for cell in self.env.cells[:7]])
+        powerInf = sum([Env.dB2ratio(self.powerRx(cell)) for cell in self.env.cells[7:]])
+
+        return Env.ratio2dB(powerSig) - Env.ratio2dB(powerInf + Env.dB2ratio(self.getPowerNoise()))
+
     def sinr(self, bs):
         powerSig = self.powerRx(bs)
         powerInf = sum(
@@ -484,3 +490,25 @@ if __name__ == "__main__":
     aveDataRate = np.array(aveDataRate)
     aveDataRate = aveDataRate.sum(axis=0) / simIt
 
+    ################ 2-1 ################
+    data = []
+    for idx in range(100):
+        for cell in innerCells:
+            cell.clear()
+            cell.addRandomMSs(np.random.randint(5, 16))
+        poorestSINRs = []
+        for cell in innerCells:
+            poorestSINRs.append(
+                min([ms.constsinr(cell) for ms in cell.MSs])
+            )
+        poorest = min(poorestSINRs)
+        data.append(poorest)
+    data = np.array(data)
+    data.sort()
+    count = 0; Y1 = []
+    for point in data:
+        count += 1
+        Y1.append(count/len(data))
+    plt.plot(data, Y1)
+    plt.savefig("2-1.jpg")
+    plt.show()
