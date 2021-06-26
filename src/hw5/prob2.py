@@ -262,8 +262,9 @@ if __name__ == "__main__":
 
 
     prob = []
-    load = ['100k', '300k', '500k', '700k', '900k', '1.1M', '1.3M', '1.5M', '1.7M', '1.9M']
-    for rate in range(100000, 2000000, 200000):
+    load = ['100k', '300k', '500k', '700k', '900k', '1.1M', '1.3M', '1.5M', '1.7M', '1.9M', '2M', '200M']
+    load_int = [100000, 300000, 500000, 700000, 900000, 1100000, 1300000, 1500000, 1700000, 1900000, 2000000, 200000000]
+    for rate in load_int:
         loss_data = 0
         total_data = 0
         for _ in range(1000):
@@ -302,7 +303,7 @@ if __name__ == "__main__":
     prob = []
     for ue in cent_bs.ue:
         ue.set_buffer(0)
-    for rate in range(100000, 2000000, 200000):
+    for rate in load_int:
         loss_data = 0
         total_data = 0
         for _ in range(1000):
