@@ -447,7 +447,7 @@ if __name__ == "__main__":
     ################################ 1-2 ################################
     innerCells = [cell for cell in env0.cells[:7]]
     dataPoints_1, dataPoints_2 = [], []
-    resourceEffs = []
+    resourceEffs_1, resourceEffs_2 = [], []
     for idx in range(simIt):
         for cell in innerCells:
             cell.clear()
@@ -462,14 +462,20 @@ if __name__ == "__main__":
             )
         dataPoints_1.append(poorestSINRs_1)
         dataPoints_2.append(min(poorestSINRs_2))
-        resourceEff = []; i = 0
+        resourceEff_1 = []; i = 0
+        msCount = 0
         for cell in innerCells:
             shnCp = cell.MSs[0].shannonCapacity(cell, sinr=dataPoints_1[-1][i])
-            resourceEff.append(
+            resourceEff_1.append(
                 shnCp / cell.MSs[0].getBandwidth() * cell.msNum
             )
+            msCount += cell.msNum
             i += 1
-        resourceEffs.append(resourceEff)
+        resourceEffs_1.append(resourceEff_1)
+        shnCp = innerCells[0].MSs[0].shannonCapacity(innerCells[0], sinr=dataPoints_2[-1])
+        resourceEffs_2.append(
+            shnCp / innerCells[0].MSs[0].getBandwidth() * msCount
+        )
 
     dataPoints_1 = np.array(dataPoints_1)
     for idx in range(7):
@@ -484,18 +490,19 @@ if __name__ == "__main__":
         plt.close()
 
     ################################ 1-3 ################################
-    resourceEffs = np.array(resourceEffs)
-    resourceEffs = resourceEffs.sum(axis=0) / simIt
-    aveDataRate = []
+    resourceEffs_1 = np.array(resourceEffs_1)
+    resourceEffs_1 = resourceEffs_1.sum(axis=0) / simIt
+    aveDataRate_1 = []
     for idx in range(simIt):
         poorestSINRs_1 = dataPoints_1[idx]
         dataRates = []
         for poorestSINR_1 in poorestSINRs_1:
             shnCp = innerCells[0].MSs[0].shannonCapacity(innerCells[0], sinr=poorestSINR_1)
             dataRates.append(shnCp)
-        aveDataRate.append(dataRates)
-    aveDataRate = np.array(aveDataRate)
-    aveDataRate = aveDataRate.sum(axis=0) / simIt
+        aveDataRate_1.append(dataRates)
+    aveDataRate_1 = np.array(aveDataRate_1)
+    aveDataRate_1 = aveDataRate_1.sum(axis=0) / simIt
+    print(aveDataRate_1)
 
     ################################ 2-1 ################################
     dataPoints_2 = np.array(dataPoints_2)
@@ -506,3 +513,6 @@ if __name__ == "__main__":
     plt.close()
 
     ################################ 2-2 ################################
+    resourceEffs_2 = np.array(resourceEffs_2) / simIt
+    aveDataRate_2 = sum([innerCells[0].MSs[0].shannonCapacity(innerCells[0], sinr=dataPoints_2[idx]) for idx in range(simIt)]) / simIt
+    print(aveDataRate_2)
