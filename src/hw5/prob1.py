@@ -210,7 +210,6 @@ if __name__ == "__main__":
     cent_bs = clus.bs[0]
     cent_bs.gen_ue()
     clus.plot_map('./fig1_1.jpg')
-    clus.plot_map('./fig1_1.pdf')
     print('problem 1-1')
     ################1-2-a################
 
@@ -226,7 +225,6 @@ if __name__ == "__main__":
     sinr_lst.sort()
     plt.scatter(sinr_lst, count_lst, marker='.')
     plt.savefig('./fig1_2_a.jpg')
-    plt.savefig('./fig1_2_a.pdf')
     plt.close()
     print('problem 1-2a')
 
@@ -248,7 +246,6 @@ if __name__ == "__main__":
     sinr_lst.sort()
     plt.scatter(sinr_lst, count_lst, marker='.')
     plt.savefig('./fig1_2_b.jpg')
-    plt.savefig('./fig1_2_b.pdf')
     plt.close()
     print('problem 1-2b')
 
@@ -280,7 +277,6 @@ if __name__ == "__main__":
 
     plt.scatter(sinr_lst, count_lst, marker='.')
     plt.savefig('./fig1_4.jpg')
-    plt.savefig('./fig1_4.pdf')
     plt.close()
     print('problem 1-4')
 
@@ -325,6 +321,5 @@ if __name__ == "__main__":
         ue_num_lst.append(UE_NUM)
     plt.scatter(ue_num_lst, rate_lst, marker='.')
     plt.savefig('./fig1_6.jpg')
-    plt.savefig('./fig1_6.pdf')
     plt.close()
     print('problem 1-6')

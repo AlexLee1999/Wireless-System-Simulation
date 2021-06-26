@@ -297,7 +297,6 @@ if __name__ == "__main__":
     plt.ylabel('Loss Probability')
     plt.ylim([0, 1])
     plt.savefig('fig2_1.jpg')
-    plt.savefig('fig2_1.pdf')
     plt.close()
 
     prob = []
@@ -323,5 +322,4 @@ if __name__ == "__main__":
     plt.ylabel('Loss Probability')
     plt.ylim([0, 1])
     plt.savefig('fig2_2.jpg')
-    plt.savefig('fig2_2.pdf')
     plt.close()
