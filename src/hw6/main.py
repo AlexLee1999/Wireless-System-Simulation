@@ -248,7 +248,7 @@ class MS():
         powerSig = sum([Env.dB2ratio(self.powerRx(cell)) for cell in self.env.cells[:7]])
         powerInf = sum([Env.dB2ratio(self.powerRx(cell)) for cell in self.env.cells[7:]])
 
-        return powerSig - Env.ratio2dB(powerInf + Env.dB2ratio(self.getPowerNoise()))
+        return Env.ratio2dB(powerSig) - Env.ratio2dB(powerInf + Env.dB2ratio(self.getPowerNoise()))
 
     def sinr(self, bs):
         powerSig = self.powerRx(bs)
