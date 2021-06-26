@@ -218,10 +218,11 @@ if __name__ == "__main__":
     count_lst = []
     count = 0
     for ue in cent_bs.ue:
-        up_p = up_rxp(ue._dis)
-        sinr_lst.append(Sinr(up_p, 0))
-        count_lst.append(count)
-        count += 1
+        if ue._recv == 0:
+            up_p = up_rxp(ue._dis)
+            sinr_lst.append(Sinr(up_p, 0))
+            count_lst.append(count)
+            count += 1
     sinr_lst.sort()
     plt.scatter(sinr_lst, count_lst, marker='.')
     plt.savefig('./fig1_2_a.jpg')
@@ -235,14 +236,15 @@ if __name__ == "__main__":
     count_lst = []
     count = 0
     for ue in cent_bs.ue:
-        down_p = down_rxp(ue._dis)
-        inf_p = 0
-        for j in range(1, len(clus.bs)):
-            dis = sqrt((clus.bs[j].x - ue.x) ** 2 + (clus.bs[j].y - ue.y) ** 2)
-            inf_p += db_to_int(down_rxp(dis))
-        sinr_lst.append(Sinr(down_p, inf_p))
-        count_lst.append(count)
-        count += 1
+        if ue._recv == 0:
+            down_p = down_rxp(ue._dis)
+            inf_p = 0
+            for j in range(1, len(clus.bs)):
+                dis = sqrt((clus.bs[j].x - ue.x) ** 2 + (clus.bs[j].y - ue.y) ** 2)
+                inf_p += db_to_int(down_rxp(dis))
+            sinr_lst.append(Sinr(down_p, inf_p))
+            count_lst.append(count)
+            count += 1
     sinr_lst.sort()
     plt.scatter(sinr_lst, count_lst, marker='.')
     plt.savefig('./fig1_2_b.jpg')
