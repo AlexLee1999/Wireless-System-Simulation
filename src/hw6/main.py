@@ -431,5 +431,19 @@ if __name__ == "__main__":
     ################1-1################
     env0.plot()
     ################1-2################
+    innerCells = [cell for cell in env0.cells[:7]]
+    dataPoints = []
+    for idx in range(1000):
+        for cell in innerCells:
+            cell.clear()
+            cell.addRandomMSs(np.random.randint(5, 16))
+        poorestSINRs = []
+        for cell in innerCells:
+            poorestSINRs.append(
+                min([ms.sinr(cell) for ms in cell.MSs])
+            )
+        dataPoints.append(poorestSINRs)
+    dataPoints = np.array(dataPoints)
+    print(dataPoints)
 
     plt.show()
