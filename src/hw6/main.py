@@ -481,8 +481,7 @@ if __name__ == "__main__":
         plt.close()
 
     ################################ 1-3 ################################
-    resourceEffs_1 = np.array(resourceEffs_1)
-    resourceEffs_1 = resourceEffs_1.sum(axis=0) / simIt
+    resourceEffs_1 = np.array(resourceEffs_1).sum(axis=0) / simIt
     aveDataRate_1 = []
     for idx in range(simIt):
         poorestSINRs_1 = dataPoints_1[idx]
