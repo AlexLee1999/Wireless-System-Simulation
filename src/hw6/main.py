@@ -440,75 +440,69 @@ env0.cells[18].adjLR = env0.cells[1]
 
 if __name__ == "__main__":
     simIt = 100
+
     ################################ 1-1 ################################
     env0.plot()
+
     ################################ 1-2 ################################
     innerCells = [cell for cell in env0.cells[:7]]
-    dataPoints = []
+    dataPoints_1, dataPoints_2 = [], []
     resourceEffs = []
     for idx in range(simIt):
         for cell in innerCells:
             cell.clear()
             cell.addRandomMSs(np.random.randint(5, 16))
-        poorestSINRs = []
+        poorestSINRs_1, poorestSINRs_2 = [], []
         for cell in innerCells:
-            poorestSINRs.append(
+            poorestSINRs_1.append(
                 min([ms.sinr(cell) for ms in cell.MSs])
             )
-        dataPoints.append(poorestSINRs)
+            poorestSINRs_2.append(
+                min([ms.constsinr(cell) for ms in cell.MSs])
+            )
+        dataPoints_1.append(poorestSINRs_1)
+        dataPoints_2.append(min(poorestSINRs_2))
         resourceEff = []; i = 0
         for cell in innerCells:
-            shnCp = cell.MSs[0].shannonCapacity(cell, sinr=dataPoints[-1][i])
+            shnCp = cell.MSs[0].shannonCapacity(cell, sinr=dataPoints_1[-1][i])
             resourceEff.append(
                 shnCp / cell.MSs[0].getBandwidth() * cell.msNum
             )
             i += 1
         resourceEffs.append(resourceEff)
 
-    dataPoints = np.array(dataPoints)
+    dataPoints_1 = np.array(dataPoints_1)
     for idx in range(7):
-        dataPoint = dataPoints[:, idx]
-        dataPoint.sort()
+        dataPoint_1 = dataPoints_1[:, idx]
+        dataPoint_1.sort()
         count = 0; Y = []
-        for point in dataPoint:
+        for point in dataPoint_1:
             count += 1
-            Y.append(count/len(dataPoint))
-        plt.plot(dataPoint, Y)
+            Y.append(count/len(dataPoint_1))
+        plt.plot(dataPoint_1, Y)
         plt.savefig(f"./img/Cell_{idx+1}.jpg")
         plt.close()
+
     ################################ 1-3 ################################
     resourceEffs = np.array(resourceEffs)
     resourceEffs = resourceEffs.sum(axis=0) / simIt
     aveDataRate = []
     for idx in range(simIt):
-        poorestSINRs = dataPoints[idx]
+        poorestSINRs_1 = dataPoints_1[idx]
         dataRates = []
-        for poorestSINR in poorestSINRs:
-            shnCp = innerCells[0].MSs[0].shannonCapacity(innerCells[0], sinr=poorestSINR)
+        for poorestSINR_1 in poorestSINRs_1:
+            shnCp = innerCells[0].MSs[0].shannonCapacity(innerCells[0], sinr=poorestSINR_1)
             dataRates.append(shnCp)
         aveDataRate.append(dataRates)
     aveDataRate = np.array(aveDataRate)
     aveDataRate = aveDataRate.sum(axis=0) / simIt
 
-    ################ 2-1 ################
-    data = []
-    for idx in range(100):
-        for cell in innerCells:
-            cell.clear()
-            cell.addRandomMSs(np.random.randint(5, 16))
-        poorestSINRs = []
-        for cell in innerCells:
-            poorestSINRs.append(
-                min([ms.constsinr(cell) for ms in cell.MSs])
-            )
-        poorest = min(poorestSINRs)
-        data.append(poorest)
-    data = np.array(data)
-    data.sort()
-    count = 0; Y1 = []
-    for point in data:
-        count += 1
-        Y1.append(count/len(data))
-    plt.plot(data, Y1)
+    ################################ 2-1 ################################
+    dataPoints_2 = np.array(dataPoints_2)
+    dataPoints_2.sort()
+    plt.plot(dataPoints_2, Y)
+    plt.show()
     plt.savefig("./img/2-1.jpg")
     plt.close()
+
+    ################################ 2-2 ################################
