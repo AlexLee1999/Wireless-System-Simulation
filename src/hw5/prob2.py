@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from random import randint, uniform
-from math import sqrt, log10, log2
+from math import sqrt, log10, log2, pi, cos, sin
 from numpy import random
 
 
@@ -20,6 +20,8 @@ NEG_SQRT_3 = (-1) * sqrt(3)
 NEG_SQRT_3_div_2 = (-1) * (sqrt(3) / 2)
 UE_NUM = 75
 SCALE = 250 / SQRT_3_div_2
+PAIR_DIS = 200
+
 
 BS_BUFFER_SIZE = 15E6
 UE_BUFFER_SIZE = 0.5E6
@@ -108,9 +110,7 @@ class Bs():
         for i in range(UE_NUM):
             ue = Ue(self)
             self._ue.append(ue)
-            ue2 = Ue(self, 1, ue)
-            while sqrt((ue.x - ue2.x) ** 2 + (ue.y - ue2.y) ** 2) > 200:
-                ue2 = Ue(self, 1, ue) #add Tx pair
+            ue2 = Ue(self, 1, ue, ue.x, ue.y)
             self._ue.append(ue2)
             ue.set_pair(ue2)
 
@@ -123,8 +123,12 @@ class Bs():
 
 
 class Ue():
-    def __init__(self, bs, is_recv=0, pair=None):
-        self._x, self._y = gen_loc()
+    def __init__(self, bs, is_recv=0, pair=None, gen_x=None, gen_y=None):
+        if gen_x is None or gen_y is None:
+            self._x, self._y = gen_loc()
+        else:
+            self._x, self._y = gen_loc_with_initial(gen_x, gen_y)
+        self._dis = sqrt(self._x ** 2 + self._y ** 2)
         self._x += bs.x
         self._y += bs.y
         self._bs = bs
@@ -177,6 +181,19 @@ def gen_loc():
            (NEG_SQRT_3 * x + y >= NEG_SQRT_3):
             return x * SCALE, y * SCALE
 
+def gen_loc_with_initial(gen_x, gen_y):
+    while True:
+        theta = uniform(0, 2 * pi)
+        dis = uniform(0, PAIR_DIS)
+        x = gen_x/SCALE + dis/SCALE * cos(theta)
+        y = gen_y/SCALE + dis/SCALE * sin(theta)
+        if (y <= SQRT_3_div_2) and \
+           (y >= NEG_SQRT_3_div_2) and \
+           (SQRT_3 * x + y <= SQRT_3) and \
+           (SQRT_3 * x + y >= NEG_SQRT_3) and \
+           (NEG_SQRT_3 * x + y <= SQRT_3) and \
+           (NEG_SQRT_3 * x + y >= NEG_SQRT_3):
+            return x * SCALE, y * SCALE
 
 def db_to_int(n):
     return 10 ** (n / 10)
@@ -216,16 +233,17 @@ if __name__ == "__main__":
     clus = Cluster(0, 0, ma)
     cent_bs = clus.bs[0]
     cent_bs.gen_ue()
-    d2d_p = 0
     for ue in cent_bs.ue:
         if ue._is_recv == 1:
-            dis = sqrt((ue.x - ue._pair.x)**2+(ue.y - ue._pair.y)**2)
-            d2d_p += db_to_int(up_rxp_d2d(dis))
-    for ue in cent_bs.ue:
-        dis = sqrt((ue.x-ue._pair.x)**2+(ue.y-ue._pair.y)**2)
-        up_p = up_rxp_d2d(dis)
-        ue._d2d_rate = shannon((Sinr(up_p, d2d_p - db_to_int(up_p))))
-        print(ue._d2d_rate)
+            d2d_p = 0
+            for tx_ue in cent_bs.ue:
+                if tx_ue._is_recv == 0:
+                    dis = sqrt((ue.x - tx_ue.x) ** 2 + (ue.y - tx_ue.y) ** 2)
+                    d2d_p += db_to_int(up_rxp_d2d(dis))
+            dis = sqrt((ue.x - ue._pair.x) ** 2 + (ue.y - ue._pair.y) ** 2)
+            up_p = up_rxp_d2d(dis)
+            ue._d2d_rate = shannon((Sinr(up_p, d2d_p - db_to_int(up_p))))
+            ue._pair._d2d_rate = shannon((Sinr(up_p, d2d_p - db_to_int(up_p))))
     # Calculate rate for downlink and uplink
 
     for ue in cent_bs.ue:
@@ -243,7 +261,8 @@ if __name__ == "__main__":
             ue.rate = shan
 
 
-
+    prob = []
+    load = ['100k', '300k', '500k', '700k', '900k', '1.1M', '1.3M', '1.5M', '1.7M', '1.9M']
     for rate in range(100000, 2000000, 200000):
         loss_data = 0
         total_data = 0
@@ -261,22 +280,26 @@ if __name__ == "__main__":
                         ue._pair._tx_buffer = ready_data
                     else:
                         ue._pair._tx_buffer = ue.rate
-
-            # BS bit loss
             for ue in cent_bs.ue:
                 if ue._is_recv == 1:
                     ue.set_tx_buffer(max(ue._tx_buffer - ue.rate, 0))
             current = cent_bs.cal_tx_buffer()
-            # print(current)
             current_loss_data = current - BS_BUFFER_SIZE
             if current_loss_data > 0:
                 loss_data += current_loss_data
                 for ue in cent_bs.ue:
                     if ue._is_recv == 1:
                         ue.set_tx_buffer(ue._tx_buffer * BS_BUFFER_SIZE / current)
-        # print(loss_data, total_data)
+        prob.append(loss_data / total_data)
+    plt.bar(load, prob)
+    plt.title('Loss Probability')
+    plt.xlabel('Load')
+    plt.ylabel('Loss Probability')
+    plt.ylim([0, 1])
+    plt.savefig('fig2_1.jpg')
+    plt.close()
 
-
+    prob = []
     for ue in cent_bs.ue:
         ue.set_buffer(0)
     for rate in range(100000, 2000000, 200000):
@@ -292,4 +315,11 @@ if __name__ == "__main__":
                     if ue._buffer > UE_BUFFER_SIZE:
                         loss_data += ue._buffer - UE_BUFFER_SIZE
                         ue.set_buffer(UE_BUFFER_SIZE)
-        print(loss_data/total_data)
+        prob.append(loss_data / total_data)
+    plt.bar(load, prob)
+    plt.title('Loss Probability')
+    plt.xlabel('Load')
+    plt.ylabel('Loss Probability')
+    plt.ylim([0, 1])
+    plt.savefig('fig2_2.jpg')
+    plt.close()
