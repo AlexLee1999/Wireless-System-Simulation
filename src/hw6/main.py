@@ -65,6 +65,8 @@ class Env():
             plt.text(x, y, str(idx), fontsize=10)
         plt.xlim(-4 * Cell.R, 4 * Cell.R)
         plt.ylim(-2.5 * Cell.ISD, 2.5 * Cell.ISD)
+        plt.savefig("./img/Cell_ID.jpg")
+        plt.close()
 
 
 
@@ -253,8 +255,11 @@ class MS():
             powerInf + Env.dB2ratio(self.getPowerNoise())
         )
 
-    def shannonCapacity(self, bs):
-        self.capacity = self.getBandwidth() * np.log2(1 + Env.dB2ratio(self.sinr(bs)))
+    def shannonCapacity(self, bs, sinr=0):
+        if sinr == 0:
+            self.capacity = self.getBandwidth() * np.log2(1 + Env.dB2ratio(self.sinr(bs)))
+        else:
+            self.capacity = self.getBandwidth() * np.log2(1 + Env.dB2ratio(sinr))
         return self.capacity
 
 
@@ -428,12 +433,14 @@ env0.cells[18].adjLR = env0.cells[1]
 
 
 if __name__ == "__main__":
+    simIt = 100
     ################################ 1-1 ################################
     env0.plot()
     ################################ 1-2 ################################
     innerCells = [cell for cell in env0.cells[:7]]
     dataPoints = []
-    for idx in range(100):
+    resourceEffs = []
+    for idx in range(simIt):
         for cell in innerCells:
             cell.clear()
             cell.addRandomMSs(np.random.randint(5, 16))
@@ -443,6 +450,15 @@ if __name__ == "__main__":
                 min([ms.sinr(cell) for ms in cell.MSs])
             )
         dataPoints.append(poorestSINRs)
+        resourceEff = []; i = 0
+        for cell in innerCells:
+            shnCp = cell.MSs[0].shannonCapacity(cell, sinr=dataPoints[-1][i])
+            resourceEff.append(
+                shnCp / cell.MSs[0].getBandwidth() * cell.msNum
+            )
+            i += 1
+        resourceEffs.append(resourceEff)
+
     dataPoints = np.array(dataPoints)
     for idx in range(7):
         dataPoint = dataPoints[:, idx]
@@ -450,8 +466,21 @@ if __name__ == "__main__":
         count = 0; Y = []
         for point in dataPoint:
             count += 1
-            Y.append(count)
+            Y.append(count/len(dataPoint))
         plt.plot(dataPoint, Y)
+        plt.savefig(f"./img/Cell_{idx+1}.jpg")
+        plt.close()
     ################################ 1-3 ################################
+    resourceEffs = np.array(resourceEffs)
+    resourceEffs = resourceEffs.sum(axis=0) / simIt
+    aveDataRate = []
+    for idx in range(simIt):
+        poorestSINRs = dataPoints[idx]
+        dataRates = []
+        for poorestSINR in poorestSINRs:
+            shnCp = innerCells[0].MSs[0].shannonCapacity(innerCells[0], sinr=poorestSINR)
+            dataRates.append(shnCp)
+        aveDataRate.append(dataRates)
+    aveDataRate = np.array(aveDataRate)
+    aveDataRate = aveDataRate.sum(axis=0) / simIt
 
-    plt.show()
