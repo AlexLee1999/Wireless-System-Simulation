@@ -450,8 +450,9 @@ if __name__ == "__main__":
         count = 0; Y = []
         for point in dataPoint:
             count += 1
-            Y.append(count)
-        plt.plot(dataPoint/len(dataPoint), Y)
+            Y.append(count/len(dataPoint))
+        plt.plot(dataPoint, Y)
+        plt.show()
     ################ 1-3 ################
 
     plt.show()
