@@ -428,12 +428,12 @@ env0.cells[18].adjLR = env0.cells[1]
 
 
 if __name__ == "__main__":
-    ################1-1################
+    ################ 1-1 ################
     env0.plot()
-    ################1-2################
+    ################ 1-2 ################
     innerCells = [cell for cell in env0.cells[:7]]
     dataPoints = []
-    for idx in range(1000):
+    for idx in range(100):
         for cell in innerCells:
             cell.clear()
             cell.addRandomMSs(np.random.randint(5, 16))
@@ -444,6 +444,14 @@ if __name__ == "__main__":
             )
         dataPoints.append(poorestSINRs)
     dataPoints = np.array(dataPoints)
-    print(dataPoints)
+    for idx in range(7):
+        dataPoint = dataPoints[:, idx]
+        dataPoint.sort()
+        count = 0; Y = []
+        for point in dataPoint:
+            count += 1
+            Y.append(count)
+        plt.plot(dataPoint, Y)
+    ################ 1-3 ################
 
     plt.show()
