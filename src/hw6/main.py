@@ -483,4 +483,5 @@ if __name__ == "__main__":
         count += 1
         Y1.append(count/len(data))
     plt.plot(data, Y1)
+    plt.savefig("2-1.jpg")
     plt.show()
