@@ -20,8 +20,7 @@ NEG_SQRT_3 = (-1) * sqrt(3)
 NEG_SQRT_3_div_2 = (-1) * (sqrt(3) / 2)
 UE_NUM = 75
 SCALE = 250 / SQRT_3_div_2
-PAIR_DIS = 200
-
+PAIR_DIS = 100
 
 class Map():
     def __init__(self):
@@ -156,7 +155,7 @@ def gen_loc():
 def gen_loc_with_initial(gen_x, gen_y):
     while True:
         theta = uniform(0, 2 * pi)
-        dis = uniform(0, PAIR_DIS)
+        dis = uniform(PAIR_DIS, PAIR_DIS)
         x = gen_x / SCALE + dis / SCALE * cos(theta)
         y = gen_y / SCALE + dis / SCALE * sin(theta)
         if (y <= SQRT_3_div_2) and \
@@ -211,6 +210,7 @@ if __name__ == "__main__":
     cent_bs = clus.bs[0]
     cent_bs.gen_ue()
     clus.plot_map('./fig1_1.jpg')
+    clus.plot_map('./fig1_1.pdf')
     print('problem 1-1')
     ################1-2-a################
 
@@ -225,6 +225,7 @@ if __name__ == "__main__":
     sinr_lst.sort()
     plt.scatter(sinr_lst, count_lst, marker='.')
     plt.savefig('./fig1_2_a.jpg')
+    plt.savefig('./fig1_2_a.pdf')
     plt.close()
     print('problem 1-2a')
 
@@ -245,6 +246,7 @@ if __name__ == "__main__":
     sinr_lst.sort()
     plt.scatter(sinr_lst, count_lst, marker='.')
     plt.savefig('./fig1_2_b.jpg')
+    plt.savefig('./fig1_2_b.pdf')
     plt.close()
     print('problem 1-2b')
 
@@ -276,6 +278,7 @@ if __name__ == "__main__":
 
     plt.scatter(sinr_lst, count_lst, marker='.')
     plt.savefig('./fig1_4.jpg')
+    plt.savefig('./fig1_4.pdf')
     plt.close()
     print('problem 1-4')
 
@@ -320,5 +323,6 @@ if __name__ == "__main__":
         ue_num_lst.append(UE_NUM)
     plt.scatter(ue_num_lst, rate_lst, marker='.')
     plt.savefig('./fig1_6.jpg')
+    plt.savefig('./fig1_6.pdf')
     plt.close()
     print('problem 1-6')

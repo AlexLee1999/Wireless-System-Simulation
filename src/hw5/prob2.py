@@ -20,7 +20,7 @@ NEG_SQRT_3 = (-1) * sqrt(3)
 NEG_SQRT_3_div_2 = (-1) * (sqrt(3) / 2)
 UE_NUM = 75
 SCALE = 250 / SQRT_3_div_2
-PAIR_DIS = 200
+PAIR_DIS = 100
 
 
 BS_BUFFER_SIZE = 15E6
@@ -184,7 +184,7 @@ def gen_loc():
 def gen_loc_with_initial(gen_x, gen_y):
     while True:
         theta = uniform(0, 2 * pi)
-        dis = uniform(0, PAIR_DIS)
+        dis = uniform(PAIR_DIS, PAIR_DIS)
         x = gen_x/SCALE + dis/SCALE * cos(theta)
         y = gen_y/SCALE + dis/SCALE * sin(theta)
         if (y <= SQRT_3_div_2) and \
@@ -297,6 +297,7 @@ if __name__ == "__main__":
     plt.ylabel('Loss Probability')
     plt.ylim([0, 1])
     plt.savefig('fig2_1.jpg')
+    plt.savefig('fig2_1.pdf')
     plt.close()
 
     prob = []
@@ -322,4 +323,5 @@ if __name__ == "__main__":
     plt.ylabel('Loss Probability')
     plt.ylim([0, 1])
     plt.savefig('fig2_2.jpg')
+    plt.savefig('fig2_2.pdf')
     plt.close()
