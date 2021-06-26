@@ -477,7 +477,7 @@ if __name__ == "__main__":
             count += 1
             Y.append(count/len(dataPoint_1))
         plt.plot(dataPoint_1, Y)
-        plt.savefig(f"./img/Cell_{idx+1}.jpg")
+        plt.savefig(f"./img/Cell_{idx + 1}.jpg")
         plt.close()
 
     ################################ 1-3 ################################
