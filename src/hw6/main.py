@@ -501,7 +501,7 @@ if __name__ == "__main__":
     dataPoints_2 = np.array(dataPoints_2)
     dataPoints_2.sort()
     plt.plot(dataPoints_2, Y)
-    plt.show()
+    plt.title("CDF")
     plt.savefig("./img/2-1.jpg")
     plt.close()
 
