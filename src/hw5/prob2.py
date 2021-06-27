@@ -20,7 +20,7 @@ NEG_SQRT_3 = (-1) * sqrt(3)
 NEG_SQRT_3_div_2 = (-1) * (sqrt(3) / 2)
 UE_NUM = 75
 SCALE = 250 / SQRT_3_div_2
-PAIR_DIS = 100
+PAIR_DIS = 200
 
 
 BS_BUFFER_SIZE = 15E6

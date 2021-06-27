@@ -20,7 +20,7 @@ NEG_SQRT_3 = (-1) * sqrt(3)
 NEG_SQRT_3_div_2 = (-1) * (sqrt(3) / 2)
 UE_NUM = 75
 SCALE = 250 / SQRT_3_div_2
-PAIR_DIS = 100
+PAIR_DIS = 200
 
 class Map():
     def __init__(self):
@@ -323,3 +323,69 @@ if __name__ == "__main__":
     plt.savefig('./img/fig1_6.jpg')
     plt.close()
     print('problem 1-6')
+
+    UE_NUM = 75
+    ma = Map()
+    PAIR_DIS = 10
+    clus = Cluster(0, 0, ma)
+    cent_bs = clus.bs[0]
+    cent_bs.gen_ue()
+    sinr_lst = []
+    count_lst = []
+    count = 0
+    for ue in cent_bs.ue:
+        if ue._recv == 1:
+            d2d_p = 0
+            for tx_ue in cent_bs.ue:
+                if tx_ue._recv == 0:
+                    dis = sqrt((ue.x - tx_ue.x) ** 2 + (ue.y - tx_ue.y) ** 2)
+                    d2d_p += db_to_int(up_rxp_d2d(dis))
+            dis = sqrt((ue.x - ue._tx.x) ** 2 + (ue.y - ue._tx.y) ** 2)
+            up_p = up_rxp_d2d(dis)
+            sinr_lst.append(Sinr(up_p, d2d_p - db_to_int(up_p)))
+            count_lst.append(count)
+            count += 1
+    sinr_lst.sort()
+
+    ################1-5################
+
+    rate = 0
+    for sinr in sinr_lst:
+        rate += shannon(sinr)
+    print(f'Throughput of D2D systems : {rate}')
+    print('Bonus')
+
+    rate_lst = []
+    ue_num_lst = []
+
+    for i in range(10):
+        UE_NUM += 25
+        ma = Map()
+        clus = Cluster(0, 0, ma)
+        cent_bs = clus.bs[0]
+        cent_bs.gen_ue()
+        sinr_lst = []
+        count_lst = []
+        count = 0
+        for ue in cent_bs.ue:
+            if ue._recv == 1:
+                d2d_p = 0
+                for tx_ue in cent_bs.ue:
+                    if tx_ue._recv == 0:
+                        dis = sqrt((ue.x - tx_ue.x) ** 2 + (ue.y - tx_ue.y) ** 2)
+                        d2d_p += db_to_int(up_rxp_d2d(dis))
+                dis = sqrt((ue.x - ue._tx.x) ** 2 + (ue.y - ue._tx.y) ** 2)
+                up_p = up_rxp_d2d(dis)
+                sinr_lst.append(Sinr(up_p, (d2d_p - db_to_int(up_p))))
+                count_lst.append(count)
+                count += 1
+        sinr_lst.sort()
+        rate = 0
+        for sinr in sinr_lst:
+            rate += shannon(sinr)
+        rate_lst.append(rate)
+        ue_num_lst.append(UE_NUM)
+    plt.scatter(ue_num_lst, rate_lst, marker='.')
+    plt.savefig('./img/figbonus_1.jpg')
+    plt.close()
+    print('Bonus-1')
