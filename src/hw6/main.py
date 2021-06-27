@@ -52,12 +52,12 @@ class Env():
             color = c[0].lower()
             cell = RegularPolygon(
                 (x, y),
-                numVertices = 6,
-                radius = Cell.R,
-                orientation = np.radians(30),
-                facecolor = color,
-                alpha = 0.2,
-                edgecolor = "k"
+                numVertices=6,
+                radius=Cell.R,
+                orientation=np.radians(30),
+                facecolor=color,
+                alpha=0.2,
+                edgecolor="k"
             )
             ax.add_patch(cell)
             ax.scatter(x, y, color="k", marker="^")
@@ -67,7 +67,6 @@ class Env():
         plt.ylim(-2.5 * Cell.ISD, 2.5 * Cell.ISD)
         plt.savefig("./img/Cell_ID.jpg")
         plt.close()
-
 
 
 class Cell():
@@ -153,25 +152,22 @@ class Cell():
         ax.set_aspect("equal")
         cell = RegularPolygon(
             self.coord,
-            numVertices = 6,
-            radius = Cell.R,
-            orientation = np.radians(30),
-            facecolor = "blue",
-            alpha = 0.2,
-            edgecolor = "k"
+            numVertices=6,
+            radius=Cell.R,
+            orientation=np.radians(30),
+            facecolor="blue",
+            alpha=0.2,
+            edgecolor="k"
         )
         ax.add_patch(cell)
         ax.scatter(self.coord[0], self.coord[1], color="k", marker="^")
         for ms in self.MSs:
             coord = ms.getCoord()
             ax.scatter(
-                coord[0], coord[1], alpha = 0.5, marker = "."
+                coord[0], coord[1], alpha=0.5, marker="."
             )
         plt.xlim(self.coord[0] - Cell.R, self.coord[0] + Cell.R)
         plt.ylim(self.coord[1] - .5 * Cell.ISD, self.coord[1] + .5 * Cell.ISD)
-
-
-
 
 
 class BS(Cell):
@@ -432,12 +428,6 @@ env0.cells[18].adjLo = env0.cells[6]
 env0.cells[18].adjLL = env0.cells[17]
 env0.cells[18].adjLR = env0.cells[1]
 
-
-
-
-
-
-
 if __name__ == "__main__":
     simIt = 100
 
@@ -447,7 +437,7 @@ if __name__ == "__main__":
     ################################ 1-2 ################################
     innerCells = [cell for cell in env0.cells[:7]]
     dataPoints_1, dataPoints_2 = [], []
-    resourceEffs = []
+    resourceEffs_1, resourceEffs_2 = [], []
     for idx in range(simIt):
         for cell in innerCells:
             cell.clear()
@@ -462,47 +452,62 @@ if __name__ == "__main__":
             )
         dataPoints_1.append(poorestSINRs_1)
         dataPoints_2.append(min(poorestSINRs_2))
-        resourceEff = []; i = 0
+        resourceEff_1 = []; i = 0
+        msCount = 0
         for cell in innerCells:
             shnCp = cell.MSs[0].shannonCapacity(cell, sinr=dataPoints_1[-1][i])
-            resourceEff.append(
+            resourceEff_1.append(
                 shnCp / cell.MSs[0].getBandwidth() * cell.msNum
             )
+            msCount += cell.msNum
             i += 1
-        resourceEffs.append(resourceEff)
+        resourceEffs_1.append(resourceEff_1)
+        shnCp = innerCells[0].MSs[0].shannonCapacity(innerCells[0], sinr=dataPoints_2[-1])
+        resourceEffs_2.append(
+            shnCp / innerCells[0].MSs[0].getBandwidth() * msCount
+        )
 
     dataPoints_1 = np.array(dataPoints_1)
     for idx in range(7):
         dataPoint_1 = dataPoints_1[:, idx]
         dataPoint_1.sort()
-        count = 0; Y = []
+        count = 0
+        Y = []
         for point in dataPoint_1:
             count += 1
             Y.append(count/len(dataPoint_1))
         plt.plot(dataPoint_1, Y)
-        plt.savefig(f"./img/Cell_{idx+1}.jpg")
+        plt.savefig(f"./img/Cell_{idx + 1}.jpg")
         plt.close()
 
     ################################ 1-3 ################################
-    resourceEffs = np.array(resourceEffs)
-    resourceEffs = resourceEffs.sum(axis=0) / simIt
-    aveDataRate = []
+    resourceEffs_1 = np.array(resourceEffs_1).sum(axis=0) / simIt
+    aveDataRate_1 = []
     for idx in range(simIt):
         poorestSINRs_1 = dataPoints_1[idx]
         dataRates = []
         for poorestSINR_1 in poorestSINRs_1:
             shnCp = innerCells[0].MSs[0].shannonCapacity(innerCells[0], sinr=poorestSINR_1)
             dataRates.append(shnCp)
-        aveDataRate.append(dataRates)
-    aveDataRate = np.array(aveDataRate)
-    aveDataRate = aveDataRate.sum(axis=0) / simIt
+        aveDataRate_1.append(dataRates)
+    aveDataRate_1 = np.array(aveDataRate_1)
+    aveDataRate_1 = aveDataRate_1.sum(axis=0) / simIt
+    print(f"Average datarate of PTM: {aveDataRate_1}")
+    print(f"Average resource efficiency of PTM: {resourceEffs_1}")
 
     ################################ 2-1 ################################
     dataPoints_2 = np.array(dataPoints_2)
     dataPoints_2.sort()
     plt.plot(dataPoints_2, Y)
+
     plt.title("CDF")
     plt.savefig("./img/2-1.jpg")
     plt.close()
 
     ################################ 2-2 ################################
+    resourceEffs_2 = np.array(resourceEffs_2) / simIt
+    aveDataRate_2 = sum(
+        [innerCells[0].MSs[0].shannonCapacity(innerCells[0], sinr=dataPoints_2[idx]) for idx in range(simIt)]
+    ) / simIt
+    print(f"Average datarate of SFN: {aveDataRate_2}")
+    print(f"Average resource efficiency of SFN: {resourceEffs_2}")

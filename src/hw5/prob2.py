@@ -20,7 +20,7 @@ NEG_SQRT_3 = (-1) * sqrt(3)
 NEG_SQRT_3_div_2 = (-1) * (sqrt(3) / 2)
 UE_NUM = 75
 SCALE = 250 / SQRT_3_div_2
-PAIR_DIS = 100
+PAIR_DIS = 200
 
 
 BS_BUFFER_SIZE = 15E6
@@ -262,8 +262,9 @@ if __name__ == "__main__":
 
 
     prob = []
-    load = ['100k', '300k', '500k', '700k', '900k', '1.1M', '1.3M', '1.5M', '1.7M', '1.9M']
-    for rate in range(100000, 2000000, 200000):
+    load = ['100k', '300k', '500k', '700k', '900k', '1.1M', '1.3M', '1.5M', '1.7M', '1.9M', '2M', '200M']
+    load_int = [100000, 300000, 500000, 700000, 900000, 1100000, 1300000, 1500000, 1700000, 1900000, 2000000, 200000000]
+    for rate in load_int:
         loss_data = 0
         total_data = 0
         for _ in range(1000):
@@ -296,14 +297,13 @@ if __name__ == "__main__":
     plt.xlabel('Load')
     plt.ylabel('Loss Probability')
     plt.ylim([0, 1])
-    plt.savefig('fig2_1.jpg')
-    plt.savefig('fig2_1.pdf')
+    plt.savefig('./img/fig2_1.jpg')
     plt.close()
 
     prob = []
     for ue in cent_bs.ue:
         ue.set_buffer(0)
-    for rate in range(100000, 2000000, 200000):
+    for rate in load_int:
         loss_data = 0
         total_data = 0
         for _ in range(1000):
@@ -322,6 +322,5 @@ if __name__ == "__main__":
     plt.xlabel('Load')
     plt.ylabel('Loss Probability')
     plt.ylim([0, 1])
-    plt.savefig('fig2_2.jpg')
-    plt.savefig('fig2_2.pdf')
+    plt.savefig('./img/fig2_2.jpg')
     plt.close()
