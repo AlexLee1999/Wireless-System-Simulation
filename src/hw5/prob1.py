@@ -214,16 +214,13 @@ if __name__ == "__main__":
     ################1-2-a################
 
     sinr_lst = []
-    count_lst = []
-    count = 0
+    count_lst = [i for i in range(1, UE_NUM + 1)]
     for ue in cent_bs.ue:
         if ue._recv == 0:
             up_p = up_rxp(ue._dis)
             sinr_lst.append(Sinr(up_p, 0))
-            count_lst.append(count)
-            count += 1
     sinr_lst.sort()
-    plt.plot(sinr_lst, count_lst, marker='.')
+    plt.plot(sinr_lst, count_lst)
     plt.title('CDF for SINR in Uplink system')
     plt.xlabel('SINR')
     plt.ylabel('Number of UE')
@@ -235,8 +232,7 @@ if __name__ == "__main__":
     ################1-2-b################
 
     sinr_lst = []
-    count_lst = []
-    count = 0
+    count_lst = [i for i in range(1, UE_NUM + 1)]
     for ue in cent_bs.ue:
         if ue._recv == 0:
             down_p = down_rxp(ue._dis)
@@ -245,10 +241,8 @@ if __name__ == "__main__":
                 dis = sqrt((clus.bs[j].x - ue.x) ** 2 + (clus.bs[j].y - ue.y) ** 2)
                 inf_p += db_to_int(down_rxp(dis))
             sinr_lst.append(Sinr(down_p, inf_p))
-            count_lst.append(count)
-            count += 1
     sinr_lst.sort()
-    plt.plot(sinr_lst, count_lst, marker='.')
+    plt.plot(sinr_lst, count_lst)
     plt.title('CDF for SINR in Downlink system')
     plt.xlabel('SINR')
     plt.ylabel('Number of UE')
@@ -267,8 +261,7 @@ if __name__ == "__main__":
 
     ################1-4################
     sinr_lst = []
-    count_lst = []
-    count = 0
+    count_lst = [i for i in range(1, UE_NUM + 1)]
     for ue in cent_bs.ue:
         if ue._recv == 1:
             d2d_p = 0
@@ -279,11 +272,9 @@ if __name__ == "__main__":
             dis = sqrt((ue.x - ue._tx.x) ** 2 + (ue.y - ue._tx.y) ** 2)
             up_p = up_rxp_d2d(dis)
             sinr_lst.append(Sinr(up_p, d2d_p - db_to_int(up_p)))
-            count_lst.append(count)
-            count += 1
     sinr_lst.sort()
 
-    plt.plot(sinr_lst, count_lst, marker='.')
+    plt.plot(sinr_lst, count_lst)
     plt.title('CDF for SINR in D2D system')
     plt.xlabel('SINR')
     plt.ylabel('Number of UE')
@@ -311,8 +302,7 @@ if __name__ == "__main__":
         cent_bs = clus.bs[0]
         cent_bs.gen_ue()
         sinr_lst = []
-        count_lst = []
-        count = 0
+        count_lst = [i for i in range(1, UE_NUM + 1)]
         for ue in cent_bs.ue:
             if ue._recv == 1:
                 d2d_p = 0
@@ -323,8 +313,6 @@ if __name__ == "__main__":
                 dis = sqrt((ue.x - ue._tx.x) ** 2 + (ue.y - ue._tx.y) ** 2)
                 up_p = up_rxp_d2d(dis)
                 sinr_lst.append(Sinr(up_p, (d2d_p - db_to_int(up_p))))
-                count_lst.append(count)
-                count += 1
         sinr_lst.sort()
         rate = 0
         for sinr in sinr_lst:
