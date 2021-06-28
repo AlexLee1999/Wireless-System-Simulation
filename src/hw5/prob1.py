@@ -209,7 +209,7 @@ if __name__ == "__main__":
     clus = Cluster(0, 0, ma)
     cent_bs = clus.bs[0]
     cent_bs.gen_ue()
-    clus.plot_map('./img/fig1_1.jpg')
+    clus.plot_map('./fig1_1.jpg')
     print('problem 1-1')
     ################1-2-a################
 
@@ -225,7 +225,7 @@ if __name__ == "__main__":
     plt.xlabel('SINR')
     plt.ylabel('Number of UE')
     plt.ylim([0, UE_NUM])
-    plt.savefig('./img/fig1_2_a.jpg')
+    plt.savefig('./fig1_2_a.jpg')
     plt.close()
     print('problem 1-2a')
 
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     plt.xlabel('SINR')
     plt.ylabel('Number of UE')
     plt.ylim([0, UE_NUM])
-    plt.savefig('./img/fig1_2_b.jpg')
+    plt.savefig('./fig1_2_b.jpg')
     plt.close()
     print('problem 1-2b')
 
@@ -279,7 +279,7 @@ if __name__ == "__main__":
     plt.xlabel('SINR')
     plt.ylabel('Number of UE')
     plt.ylim([0, UE_NUM])
-    plt.savefig('./img/fig1_4.jpg')
+    plt.savefig('./fig1_4.jpg')
     plt.close()
     print('problem 1-4')
 
@@ -323,7 +323,7 @@ if __name__ == "__main__":
     plt.title('Total Throughput for Different Number of Pairs')
     plt.xlabel('Number')
     plt.ylabel('Throughput')
-    plt.savefig('./img/fig1_6.jpg')
+    plt.savefig('./fig1_6.jpg')
     plt.close()
     print('problem 1-6')
 
@@ -392,6 +392,6 @@ if __name__ == "__main__":
     plt.title('Total Throughput for Different Number of Pairs')
     plt.xlabel('Number')
     plt.ylabel('Throughput')
-    plt.savefig('./img/figbonus_1.jpg')
+    plt.savefig('./figbonus_1.jpg')
     plt.close()
     print('Bonus-1')

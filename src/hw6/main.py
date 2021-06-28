@@ -65,7 +65,7 @@ class Env():
             plt.text(x, y, str(idx), fontsize=10)
         plt.xlim(-4 * Cell.R, 4 * Cell.R)
         plt.ylim(-2.5 * Cell.ISD, 2.5 * Cell.ISD)
-        plt.savefig("./img/Cell_ID.jpg")
+        plt.savefig("./Cell_ID.jpg")
         plt.close()
 
 
@@ -481,7 +481,7 @@ if __name__ == "__main__":
     plt.title("CDF")
     plt.xlabel("SINR (dB)")
     plt.ylabel("Probability")
-    plt.savefig("./img/1-2_CDF.jpg")
+    plt.savefig("./1-2_CDF.jpg")
     plt.close()
 
     ################################ 1-3 ################################
@@ -510,7 +510,7 @@ if __name__ == "__main__":
     plt.title("2-1 CDF")
     plt.xlabel('SINR (dB)')
     plt.ylabel('Probability')
-    plt.savefig("./img/2-1.jpg")
+    plt.savefig("./2-1.jpg")
     plt.close()
 
     ################################ 2-2 ################################
