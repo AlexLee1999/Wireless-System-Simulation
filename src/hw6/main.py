@@ -507,9 +507,9 @@ if __name__ == "__main__":
     dataPoints_2.sort()
     plt.plot(dataPoints_2, Y)
 
-    plt.title("2-1_CDF")
-    plt.xlabel('SINR')
-    plt.ylabel('P')
+    plt.title("2-1 CDF")
+    plt.xlabel('SINR (dB)')
+    plt.ylabel('Probability')
     plt.savefig("./img/2-1.jpg")
     plt.close()
 
