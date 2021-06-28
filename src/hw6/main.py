@@ -507,7 +507,9 @@ if __name__ == "__main__":
     dataPoints_2.sort()
     plt.plot(dataPoints_2, Y)
 
-    plt.title("CDF")
+    plt.title("2-1_CDF")
+    plt.xlabel('SINR')
+    plt.ylabel('P')
     plt.savefig("./img/2-1.jpg")
     plt.close()
 
