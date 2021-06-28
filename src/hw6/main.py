@@ -456,9 +456,7 @@ if __name__ == "__main__":
         msCount = 0
         for cell in innerCells:
             shnCp = cell.MSs[0].shannonCapacity(cell, sinr=dataPoints_1[-1][i])
-            resourceEff_1.append(
-                shnCp / cell.MSs[0].getBandwidth() * cell.msNum
-            )
+            resourceEff_1.append(shnCp / cell.MSs[0].getBandwidth() * cell.msNum)
             msCount += cell.msNum
             i += 1
         resourceEffs_1.append(resourceEff_1)
@@ -492,7 +490,8 @@ if __name__ == "__main__":
         aveDataRate_1.append(dataRates)
     aveDataRate_1 = np.array(aveDataRate_1)
     aveDataRate_1 = aveDataRate_1.sum(axis=0) / simIt
-    print(aveDataRate_1)
+    print(f"1-3. Resource Efficiency: {resourceEffs_1}")
+    print(f"1-3. Average data rate: {aveDataRate_1}")
 
     ################################ 2-1 ################################
     dataPoints_2 = np.array(dataPoints_2)
@@ -506,4 +505,5 @@ if __name__ == "__main__":
     aveDataRate_2 = sum(
         [innerCells[0].MSs[0].shannonCapacity(innerCells[0], sinr=dataPoints_2[idx]) for idx in range(simIt)]
     ) / simIt
-    print(aveDataRate_2)
+    print(f"2-2. Resource Efficiency: {resourceEffs_2}")
+    print(f"2-2. Average data rate: {aveDataRate_2}")
