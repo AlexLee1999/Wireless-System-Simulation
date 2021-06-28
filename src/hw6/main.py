@@ -472,20 +472,17 @@ if __name__ == "__main__":
 
 
     dataPoints_1 = np.array(dataPoints_1)
-    for idx in range(7):
-        dataPoint_1 = dataPoints_1[:, idx]
-        dataPoint_1.sort()
-        count = 0
-        Y = []
-        for point in dataPoint_1:
-            count += 1
-            Y.append(count/len(dataPoint_1))
-        plt.plot(dataPoint_1, Y)
-        plt.title("Cell {idx+1} CDF")
-        plt.xlabel("SINR (dB)")
-        plt.ylabel("Probability")
-        plt.savefig(f"./img/Cell_{idx + 1}.jpg")
-        plt.close()
+    data = dataPoints_1.ravel()
+    data.sort()
+    Y = []
+    for idx in range(len(data)):
+        Y.append((idx+1)/len(data))
+    plt.plot(data, Y)
+    plt.title("CDF")
+    plt.xlabel("SINR (dB)")
+    plt.ylabel("Probability")
+    plt.savefig("./img/1-2_CDF.jpg")
+    plt.close()
 
     ################################ 1-3 ################################
     resourceEffs_1 = sum(np.array(resourceEffs_1).sum(axis=0) / simIt)
@@ -505,8 +502,11 @@ if __name__ == "__main__":
     ################################ 2-1 ################################
     dataPoints_2 = np.array(dataPoints_2)
     dataPoints_2.sort()
-    plt.plot(dataPoints_2, Y)
+    Y = []
+    for idx in range(len(dataPoints_2)):
+        Y.append((idx+1)/len(dataPoints_2))
 
+    plt.plot(dataPoints_2, Y)
     plt.title("2-1 CDF")
     plt.xlabel('SINR (dB)')
     plt.ylabel('Probability')
