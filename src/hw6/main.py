@@ -481,6 +481,9 @@ if __name__ == "__main__":
             count += 1
             Y.append(count/len(dataPoint_1))
         plt.plot(dataPoint_1, Y)
+        plt.title("Cell {idx+1} CDF")
+        plt.xlabel("SINR (dB)")
+        plt.ylabel("Probability")
         plt.savefig(f"./img/Cell_{idx + 1}.jpg")
         plt.close()
 
